@@ -61,8 +61,8 @@ func ver() uint32 {
 //export event
 func event(id, ptr, size uint32) (uint64, uint64) {
 	data := PtrToString(ptr, size)
-	code, result := OnEvent(id, data)
+	errno, result := OnEvent(id, data)
 	ptr, size = StringToLeakedPtr(result)
 	ptrRes := (uint64(ptr) << uint64(32)) | uint64(size)
-	return code, ptrRes
+	return errno, ptrRes
 }
