@@ -8,7 +8,7 @@ import (
 	"unsafe"
 )
 
-type EventFunc func(uint32, string) (uint64, string)
+type EventFunc func(string) (uint64, string)
 
 var OnEvent EventFunc
 
@@ -28,14 +28,14 @@ const (
 	NoError uint64 = 0
 )
 
-func Log(id uint32, level Level, message string) {
+func Log(level Level, message string) {
 	ptr, size := StringToPtr(message)
-	_log(id, level, ptr, size)
+	_log(level, ptr, size)
 	runtime.KeepAlive(message) // keep message alive until ptr is no longer needed.
 }
 
 //go:wasmimport env log
-func _log(id uint32, level Level, ptr, size uint32)
+func _log(level Level, ptr, size uint32)
 
 func PtrToString(ptr uint32, size uint32) string {
 	return unsafe.String((*byte)(unsafe.Pointer(uintptr(ptr))), size)
@@ -59,9 +59,9 @@ func ver() uint32 {
 }
 
 //export event
-func event(id, ptr, size uint32) (uint64, uint64) {
+func event(ptr, size uint32) (uint64, uint64) {
 	data := PtrToString(ptr, size)
-	errno, result := OnEvent(id, data)
+	errno, result := OnEvent(data)
 	ptr, size = StringToLeakedPtr(result)
 	ptrRes := (uint64(ptr) << uint64(32)) | uint64(size)
 	return errno, ptrRes
